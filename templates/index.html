@@ -514,13 +514,80 @@
 
         .back-btn:hover { border-color: var(--accent); color: var(--text); }
 
+        /* Columns that hide on mobile */
+        .col-director, .col-cast-list, .col-sub { /* visible by default */ }
+
         @media (max-width: 900px) {
-            .controls { flex-direction: column; }
+            .container { padding: 12px; }
+
+            header { padding: 20px 0 12px; }
+            header h1 { font-size: 1.3rem; }
+            header p { font-size: 0.8rem; }
+
+            .controls { flex-direction: column; gap: 8px; }
             .controls input[type="text"] { min-width: auto; }
+            .controls input, .controls select { padding: 10px 14px; font-size: 1rem; }
+
+            .tab-btn { padding: 10px 16px; font-size: 0.85rem; }
+
+            /* Hide people and sub-score columns on mobile */
+            .col-director, .col-cast-list, .col-sub {
+                display: none;
+            }
+
             table { font-size: 0.85rem; }
-            .person-card { min-width: 100%; }
+
+            thead th { padding: 10px 8px; font-size: 0.7rem; }
+            tbody td { padding: 8px; }
+
+            .poster-cell { width: 32px; }
+            .poster-cell img { width: 28px; height: 42px; }
+            .poster-cell .no-poster { width: 28px; height: 42px; }
+
+            .movie-title { font-size: 0.85rem; }
+            .genre-tag { font-size: 0.65rem; padding: 1px 5px; }
+            .release-date { font-size: 0.75rem; }
+
+            .score-badge { font-size: 0.8rem; padding: 3px 8px; min-width: 38px; }
+
+            /* Detail view */
+            .detail-content { padding: 12px; }
+            .person-card { min-width: 100%; margin: 4px 0; }
+            .history-item { flex-wrap: wrap; gap: 2px; }
+            .history-item span { font-size: 0.75rem; }
+
+            /* Backtest */
             .year-grid { grid-template-columns: 1fr; }
-            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .summary-card { padding: 12px; }
+            .summary-card .card-value { font-size: 1.3rem; }
+
+            .year-detail-panel { padding: 12px; }
+            .year-detail-panel .detail-metrics { gap: 8px 16px; font-size: 0.8rem; }
+
+            /* Make rank table horizontally scrollable */
+            .rank-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -12px;
+                padding: 0 12px;
+            }
+            .rank-table { min-width: 500px; }
+            .rank-table thead th { padding: 6px 8px; font-size: 0.7rem; }
+            .rank-table tbody td { padding: 5px 8px; font-size: 0.8rem; }
+
+            .interpretation { font-size: 0.75rem; padding: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 8px; }
+            header h1 { font-size: 1.1rem; }
+
+            /* Even tighter on small phones */
+            thead th { padding: 8px 6px; }
+            tbody td { padding: 6px; }
+
+            .summary-cards { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -571,13 +638,13 @@
                         <th class="poster-cell"></th>
                         <th data-sort="title">Title</th>
                         <th data-sort="release_date">Release</th>
-                        <th>Director</th>
-                        <th>Top Cast</th>
-                        <th data-sort="total_score" class="sorted-desc">Draft Score</th>
-                        <th data-sort="director_score">Dir</th>
-                        <th data-sort="cast_score">Cast</th>
-                        <th data-sort="producer_score">Prod</th>
-                        <th data-sort="buzz_score">Buzz</th>
+                        <th class="col-director">Director</th>
+                        <th class="col-cast-list">Top Cast</th>
+                        <th data-sort="total_score" class="sorted-desc">Score</th>
+                        <th data-sort="director_score" class="col-sub">Dir</th>
+                        <th data-sort="cast_score" class="col-sub">Cast</th>
+                        <th data-sort="producer_score" class="col-sub">Prod</th>
+                        <th data-sort="buzz_score" class="col-sub">Buzz</th>
                     </tr>
                 </thead>
                 <tbody id="movies-body"></tbody>
@@ -747,13 +814,13 @@
                         ${m.genre ? '<br>' + m.genre.split(', ').slice(0,2).map(g => `<span class="genre-tag">${escHtml(g)}</span>`).join('') : ''}
                     </td>
                     <td class="release-date">${formatDate(m.release_date)}</td>
-                    <td class="people-list">${(m.directors || []).map(escHtml).join(", ") || "\u2014"}</td>
-                    <td class="people-list">${(m.top_cast || []).map(escHtml).join(", ") || "\u2014"}</td>
+                    <td class="people-list col-director">${(m.directors || []).map(escHtml).join(", ") || "\u2014"}</td>
+                    <td class="people-list col-cast-list">${(m.top_cast || []).map(escHtml).join(", ") || "\u2014"}</td>
                     <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
-                    <td class="sub-score">${dirScore}</td>
-                    <td class="sub-score">${castScore}</td>
-                    <td class="sub-score">${prodScore}</td>
-                    <td class="sub-score">${buzzScore}</td>
+                    <td class="sub-score col-sub">${dirScore}</td>
+                    <td class="sub-score col-sub">${castScore}</td>
+                    <td class="sub-score col-sub">${prodScore}</td>
+                    <td class="sub-score col-sub">${buzzScore}</td>
                 `;
 
                 tr.addEventListener("click", () => toggleDetail(m.id, tr));
@@ -825,7 +892,7 @@
                 const b = data.buzz;
                 const raw = b.raw_data || {};
                 html += `<div class="detail-section"><h3>Internet Buzz</h3>
-                    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:0.85rem;">
+                    <div style="display:flex;gap:8px 20px;flex-wrap:wrap;font-size:0.85rem;">
                         <div>Buzz Score: <span style="color:var(--accent);font-weight:600;">${b.buzz_score != null ? b.buzz_score.toFixed(1) : "N/A"}</span></div>
                         ${raw.predicted_gross ? `<div>Predicted Gross: <span style="font-weight:600;">$${raw.predicted_gross.toFixed(0)}M</span></div>` : ""}
                         ${raw.source_count ? `<div>Sources: <span style="font-weight:600;">${raw.source_count}</span></div>` : ""}
@@ -1034,6 +1101,7 @@
                     <div>Optimal Draft: <span>${formatMoney(s.profit_optimal)}</span></div>
                     <div>Random Draft: <span>${formatMoney(s.profit_random)}</span></div>
                 </div>
+                <div class="rank-table-wrap">
                 <table class="rank-table">
                     <thead>
                         <tr>
@@ -1078,7 +1146,7 @@
                 `;
             });
 
-            html += `</tbody></table>`;
+            html += `</tbody></table></div>`;
             panel.innerHTML = html;
             panel.scrollIntoView({ behavior: "smooth", block: "start" });
         }
