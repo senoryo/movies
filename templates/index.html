@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Box Office Draft Pool</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #242836;
+            --border: #2e3345;
+            --text: #e4e6f0;
+            --text-dim: #8b8fa3;
+            --accent: #6c5ce7;
+            --green: #00b894;
+            --yellow: #fdcb6e;
+            --red: #e17055;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls input,
+        .controls select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .controls input:focus,
+        .controls select:focus {
+            border-color: var(--accent);
+        }
+
+        .controls input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .stats {
+            margin-left: auto;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        thead th {
+            background: var(--surface2);
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        thead th:hover {
+            color: var(--text);
+        }
+
+        thead th.sorted-asc::after { content: " \u25B2"; }
+        thead th.sorted-desc::after { content: " \u25BC"; }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: var(--surface2);
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+
+        .movie-title {
+            font-weight: 600;
+        }
+
+        .people-list {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .score-high { background: rgba(0,184,148,0.2); color: var(--green); }
+        .score-mid  { background: rgba(253,203,110,0.2); color: var(--yellow); }
+        .score-low  { background: rgba(225,112,85,0.2); color: var(--red); }
+
+        .sub-score {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Expanded detail row */
+        .detail-row {
+            display: none;
+        }
+
+        .detail-row.open {
+            display: table-row;
+        }
+
+        .detail-row td {
+            padding: 0;
+            background: var(--bg);
+        }
+
+        .detail-content {
+            padding: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .detail-section h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .person-card {
+            display: inline-block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 4px;
+            min-width: 280px;
+            vertical-align: top;
+        }
+
+        .person-card .person-name {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .person-card .person-score {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        .profit-positive { color: var(--green); }
+        .profit-negative { color: var(--red); }
+
+        .poster-cell {
+            width: 40px;
+        }
+
+        .poster-cell img {
+            width: 35px;
+            height: 52px;
+            object-fit: cover;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .poster-cell .no-poster {
+            width: 35px;
+            height: 52px;
+            background: var(--surface2);
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-dim);
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .release-date {
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .genre-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--surface2);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin: 1px 2px;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .tab-btn:hover { color: var(--text); }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Backtest styles */
+        .backtest-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+
+        .backtest-empty code {
+            background: var(--surface2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-card .card-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .summary-card .card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+        }
+
+        .year-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .year-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+
+        .year-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .year-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .year-card .year-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .year-card .year-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+            font-size: 0.8rem;
+        }
+
+        .year-card .stat-label { color: var(--text-dim); }
+
+        .year-card .stat-value { text-align: right; font-weight: 600; }
+
+        .rho-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--surface2);
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .rho-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.4s ease;
+        }
+
+        .year-detail-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .year-detail-panel.open { display: block; }
+
+        .year-detail-panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .year-detail-panel .detail-metrics {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .year-detail-panel .detail-metrics span {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .rank-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .rank-table thead th {
+            background: var(--surface2);
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+        }
+
+        .rank-table tbody td {
+            padding: 7px 12px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-table tbody tr:last-child td { border-bottom: none; }
+
+        .rank-diff {
+            display: inline-block;
+            min-width: 36px;
+            text-align: center;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .rank-diff.good { background: rgba(0,184,148,0.15); color: var(--green); }
+        .rank-diff.ok   { background: rgba(253,203,110,0.15); color: var(--yellow); }
+        .rank-diff.bad  { background: rgba(225,112,85,0.15); color: var(--red); }
+
+        .interpretation {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .interpretation strong { color: var(--text); }
+
+        .back-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+        @media (max-width: 900px) {
+            .controls { flex-direction: column; }
+            .controls input[type="text"] { min-width: auto; }
+            table { font-size: 0.85rem; }
+            .person-card { min-width: 100%; }
+            .year-grid { grid-template-columns: 1fr; }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>2026 Box Office Draft Pool</h1>
+            <p>Draft scores based on director, producer, cast track records, and internet buzz</p>
+        </header>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="draft">Draft Pool</button>
+            <button class="tab-btn" data-tab="backtest">Backtest (2015-2024)</button>
+        </div>
+
+        <!-- Draft Pool Tab -->
+        <div class="tab-content active" id="tab-draft">
+            <div class="controls">
+                <input type="text" id="search" placeholder="Search movies or people...">
+                <select id="genre-filter">
+                    <option value="">All Genres</option>
+                </select>
+                <select id="quarter-filter">
+                    <option value="">All Quarters</option>
+                    <option value="Q1">Q1 (Jan-Mar)</option>
+                    <option value="Q2">Q2 (Apr-Jun)</option>
+                    <option value="Q3">Q3 (Jul-Sep)</option>
+                    <option value="Q4">Q4 (Oct-Dec)</option>
+                </select>
+                <select id="min-score">
+                    <option value="">Min Score: Any</option>
+                    <option value="20">Min Score: 20+</option>
+                    <option value="40">Min Score: 40+</option>
+                    <option value="60">Min Score: 60+</option>
+                    <option value="80">Min Score: 80+</option>
+                </select>
+                <span class="stats" id="stats"></span>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div>Loading movies...</div>
+            </div>
+
+            <table id="movies-table" style="display:none;">
+                <thead>
+                    <tr>
+                        <th class="poster-cell"></th>
+                        <th data-sort="title">Title</th>
+                        <th data-sort="release_date">Release</th>
+                        <th>Director</th>
+                        <th>Top Cast</th>
+                        <th data-sort="total_score" class="sorted-desc">Draft Score</th>
+                        <th data-sort="director_score">Dir</th>
+                        <th data-sort="cast_score">Cast</th>
+                        <th data-sort="producer_score">Prod</th>
+                        <th data-sort="buzz_score">Buzz</th>
+                    </tr>
+                </thead>
+                <tbody id="movies-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Backtest Tab -->
+        <div class="tab-content" id="tab-backtest">
+            <div id="backtest-loading" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <div>Loading backtest data...</div>
+            </div>
+
+            <div id="backtest-empty" class="backtest-empty" style="display:none;">
+                <p style="font-size:1.1rem;margin-bottom:8px;">No backtest data found</p>
+                <p>Run <code>python backtest.py</code> to generate historical validation data.</p>
+            </div>
+
+            <div id="backtest-content" style="display:none;">
+                <div id="backtest-summary-cards" class="summary-cards"></div>
+                <div id="year-detail-panel" class="year-detail-panel"></div>
+                <div id="year-grid" class="year-grid"></div>
+
+                <div class="interpretation">
+                    <strong>How to read this data:</strong><br>
+                    <strong>Spearman Rho</strong> measures rank correlation between predicted scores and actual revenue.
+                    Values above 0.5 indicate strong predictive power; 0.3-0.5 is moderate; below 0.3 is weak.<br>
+                    <strong>Top-10 Overlap</strong> counts how many of the algorithm's top 10 picks were actually in the revenue top 10.<br>
+                    <strong>D/R Ratio</strong> compares the total profit from drafting the algorithm's top 10 vs picking 10 movies at random.
+                    A D/R of 2.0 means the algorithm doubles the profit of a random draft.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TMDB_IMG = "https://image.tmdb.org/t/p/w92";
+        let currentSort = "total_score";
+        let currentOrder = "desc";
+        let expandedRow = null;
+        let debounceTimer = null;
+        let backtestLoaded = false;
+        let backtestData = null;
+        let selectedYear = null;
+
+        // =====================================================================
+        // Shared helpers
+        // =====================================================================
+
+        function scoreClass(score) {
+            if (score >= 65) return "score-high";
+            if (score >= 35) return "score-mid";
+            return "score-low";
+        }
+
+        function formatMoney(val) {
+            if (!val) return "N/A";
+            if (val >= 1e9) return "$" + (val / 1e9).toFixed(1) + "B";
+            if (val >= 1e6) return "$" + (val / 1e6).toFixed(0) + "M";
+            if (val >= 1e3) return "$" + (val / 1e3).toFixed(0) + "K";
+            return "$" + val;
+        }
+
+        function formatDate(d) {
+            if (!d) return "TBA";
+            const parts = d.split("-");
+            if (parts.length < 2) return d;
+            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            return months[parseInt(parts[1]) - 1] + " " + parseInt(parts[2]) + ", " + parts[0];
+        }
+
+        function escHtml(text) {
+            if (!text) return "";
+            const d = document.createElement("div");
+            d.textContent = text;
+            return d.innerHTML;
+        }
+
+        function rhoColor(rho) {
+            if (rho >= 0.5) return "var(--green)";
+            if (rho >= 0.3) return "var(--yellow)";
+            return "var(--red)";
+        }
+
+        // =====================================================================
+        // Tab switching
+        // =====================================================================
+
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+                btn.classList.add("active");
+                document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+
+                if (btn.dataset.tab === "backtest" && !backtestLoaded) {
+                    loadBacktest();
+                }
+            });
+        });
+
+        // =====================================================================
+        // Draft Pool (existing)
+        // =====================================================================
+
+        async function loadGenres() {
+            const resp = await fetch("/api/genres");
+            const genres = await resp.json();
+            const select = document.getElementById("genre-filter");
+            genres.forEach(g => {
+                const opt = document.createElement("option");
+                opt.value = g;
+                opt.textContent = g;
+                select.appendChild(opt);
+            });
+        }
+
+        async function loadMovies() {
+            const params = new URLSearchParams();
+            params.set("sort", currentSort);
+            params.set("order", currentOrder);
+
+            const search = document.getElementById("search").value.trim();
+            if (search) params.set("search", search);
+
+            const genre = document.getElementById("genre-filter").value;
+            if (genre) params.set("genre", genre);
+
+            const quarter = document.getElementById("quarter-filter").value;
+            if (quarter) params.set("quarter", quarter);
+
+            const minScore = document.getElementById("min-score").value;
+            if (minScore) params.set("min_score", minScore);
+
+            const resp = await fetch("/api/movies?" + params.toString());
+            const movies = await resp.json();
+
+            renderTable(movies);
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("movies-table").style.display = "";
+            document.getElementById("stats").textContent = movies.length + " movies";
+        }
+
+        function renderTable(movies) {
+            const tbody = document.getElementById("movies-body");
+            tbody.innerHTML = "";
+            expandedRow = null;
+
+            movies.forEach(m => {
+                const tr = document.createElement("tr");
+                tr.dataset.movieId = m.id;
+
+                const score = m.total_score != null ? Math.round(m.total_score) : 0;
+                const dirScore = m.director_score != null ? Math.round(m.director_score) : 0;
+                const castScore = m.cast_score != null ? Math.round(m.cast_score) : 0;
+                const prodScore = m.producer_score != null ? Math.round(m.producer_score) : 0;
+                const buzzScore = m.buzz_score != null ? Math.round(m.buzz_score) : 0;
+
+                const posterHtml = m.poster_path
+                    ? `<img src="${TMDB_IMG}${m.poster_path}" alt="" loading="lazy">`
+                    : `<span class="no-poster"></span>`;
+
+                tr.innerHTML = `
+                    <td class="poster-cell">${posterHtml}</td>
+                    <td>
+                        <span class="movie-title">${escHtml(m.title)}</span>
+                        ${m.genre ? '<br>' + m.genre.split(', ').slice(0,2).map(g => `<span class="genre-tag">${escHtml(g)}</span>`).join('') : ''}
+                    </td>
+                    <td class="release-date">${formatDate(m.release_date)}</td>
+                    <td class="people-list">${(m.directors || []).map(escHtml).join(", ") || "\u2014"}</td>
+                    <td class="people-list">${(m.top_cast || []).map(escHtml).join(", ") || "\u2014"}</td>
+                    <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
+                    <td class="sub-score">${dirScore}</td>
+                    <td class="sub-score">${castScore}</td>
+                    <td class="sub-score">${prodScore}</td>
+                    <td class="sub-score">${buzzScore}</td>
+                `;
+
+                tr.addEventListener("click", () => toggleDetail(m.id, tr));
+                tbody.appendChild(tr);
+
+                const detailTr = document.createElement("tr");
+                detailTr.className = "detail-row";
+                detailTr.id = "detail-" + m.id;
+                detailTr.innerHTML = `<td colspan="10"><div class="detail-content"><div class="loading"><div class="spinner"></div></div></div></td>`;
+                tbody.appendChild(detailTr);
+            });
+        }
+
+        async function toggleDetail(movieId, clickedRow) {
+            const detailRow = document.getElementById("detail-" + movieId);
+
+            if (expandedRow === movieId) {
+                detailRow.classList.remove("open");
+                expandedRow = null;
+                return;
+            }
+
+            if (expandedRow !== null) {
+                const prev = document.getElementById("detail-" + expandedRow);
+                if (prev) prev.classList.remove("open");
+            }
+
+            expandedRow = movieId;
+            detailRow.classList.add("open");
+
+            const resp = await fetch("/api/movie/" + movieId);
+            const data = await resp.json();
+            const content = detailRow.querySelector(".detail-content");
+
+            let html = "";
+
+            if (data.overview) {
+                html += `<div class="detail-section"><p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px;">${escHtml(data.overview)}</p></div>`;
+            }
+
+            const breakdown = data.score_breakdown || {};
+
+            if (breakdown.directors && breakdown.directors.length > 0) {
+                html += `<div class="detail-section"><h3>Directors</h3>`;
+                breakdown.directors.forEach(d => { html += renderPersonCard(d); });
+                html += `</div>`;
+            }
+
+            if (breakdown.producers && breakdown.producers.length > 0) {
+                html += `<div class="detail-section"><h3>Producers</h3>`;
+                breakdown.producers.forEach(p => { html += renderPersonCard(p); });
+                html += `</div>`;
+            }
+
+            if (breakdown.cast && breakdown.cast.length > 0) {
+                html += `<div class="detail-section"><h3>Cast</h3>`;
+                breakdown.cast.forEach(c => { html += renderPersonCard(c); });
+                html += `</div>`;
+            }
+
+            if (breakdown.franchise) {
+                html += `<div class="detail-section"><h3>Franchise Bonus</h3>
+                    <span class="genre-tag">${escHtml(breakdown.franchise.collection_name)}</span>
+                    <span style="color:var(--green);margin-left:8px;">+${breakdown.franchise.bonus} pts</span>
+                </div>`;
+            }
+
+            if (data.buzz) {
+                const b = data.buzz;
+                const raw = b.raw_data || {};
+                html += `<div class="detail-section"><h3>Internet Buzz</h3>
+                    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:0.85rem;">
+                        <div>Buzz Score: <span style="color:var(--accent);font-weight:600;">${b.buzz_score != null ? b.buzz_score.toFixed(1) : "N/A"}</span></div>
+                        ${raw.predicted_gross ? `<div>Predicted Gross: <span style="font-weight:600;">$${raw.predicted_gross.toFixed(0)}M</span></div>` : ""}
+                        ${raw.source_count ? `<div>Sources: <span style="font-weight:600;">${raw.source_count}</span></div>` : ""}
+                        ${raw.sentiment != null ? `<div>Sentiment: <span style="font-weight:600;color:${raw.sentiment > 0 ? 'var(--green)' : raw.sentiment < 0 ? 'var(--red)' : 'var(--text-dim)'};">${raw.sentiment > 0 ? '+' : ''}${raw.sentiment.toFixed(2)}</span></div>` : ""}
+                    </div>
+                    ${raw.snippets && raw.snippets.length > 0 ? `
+                        <div style="margin-top:10px;">
+                            ${raw.snippets.slice(0, 3).map(s => `<div style="font-size:0.8rem;color:var(--text-dim);padding:4px 0;border-bottom:1px solid var(--border);">${escHtml(s)}</div>`).join("")}
+                        </div>
+                    ` : ""}
+                </div>`;
+            }
+
+            if (!html) {
+                html = '<p style="color:var(--text-dim)">No detailed breakdown available.</p>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function renderPersonCard(person) {
+            let historyHtml = "";
+            if (person.history && person.history.length > 0) {
+                person.history.forEach(h => {
+                    const profit = h.profit || (h.revenue - h.budget);
+                    const profitClass = profit >= 0 ? "profit-positive" : "profit-negative";
+                    historyHtml += `
+                        <div class="history-item">
+                            <span class="history-title">${escHtml(h.title)} (${(h.release_date || "").slice(0,4)})</span>
+                            <span>${formatMoney(h.budget)} &rarr; ${formatMoney(h.revenue)}</span>
+                            <span class="${profitClass}" style="min-width:80px;text-align:right;">${profit >= 0 ? "+" : ""}${formatMoney(Math.abs(profit))}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                historyHtml = '<div style="font-size:0.8rem;color:var(--text-dim);">No track record data</div>';
+            }
+
+            return `
+                <div class="person-card">
+                    <div class="person-name">${escHtml(person.name)}</div>
+                    <div class="person-score">Score: ${person.score != null ? person.score : "N/A"}</div>
+                    ${historyHtml}
+                </div>
+            `;
+        }
+
+        // Sorting
+        document.querySelectorAll("thead th[data-sort]").forEach(th => {
+            th.addEventListener("click", () => {
+                const field = th.dataset.sort;
+                if (currentSort === field) {
+                    currentOrder = currentOrder === "desc" ? "asc" : "desc";
+                } else {
+                    currentSort = field;
+                    currentOrder = field === "title" ? "asc" : "desc";
+                }
+
+                document.querySelectorAll("thead th").forEach(h => {
+                    h.classList.remove("sorted-asc", "sorted-desc");
+                });
+                th.classList.add(currentOrder === "asc" ? "sorted-asc" : "sorted-desc");
+
+                loadMovies();
+            });
+        });
+
+        function debouncedLoad() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadMovies, 300);
+        }
+
+        document.getElementById("search").addEventListener("input", debouncedLoad);
+        document.getElementById("genre-filter").addEventListener("change", loadMovies);
+        document.getElementById("quarter-filter").addEventListener("change", loadMovies);
+        document.getElementById("min-score").addEventListener("change", loadMovies);
+
+        // =====================================================================
+        // Backtest Tab
+        // =====================================================================
+
+        async function loadBacktest() {
+            backtestLoaded = true;
+            document.getElementById("backtest-loading").style.display = "";
+            document.getElementById("backtest-empty").style.display = "none";
+            document.getElementById("backtest-content").style.display = "none";
+
+            try {
+                const resp = await fetch("/api/backtest/summary");
+                if (!resp.ok) {
+                    document.getElementById("backtest-loading").style.display = "none";
+                    document.getElementById("backtest-empty").style.display = "";
+                    return;
+                }
+                backtestData = await resp.json();
+                if (!backtestData.length) {
+                    document.getElementById("backtest-loading").style.display = "none";
+                    document.getElementById("backtest-empty").style.display = "";
+                    return;
+                }
+                renderBacktestSummary();
+                document.getElementById("backtest-loading").style.display = "none";
+                document.getElementById("backtest-content").style.display = "";
+            } catch (e) {
+                document.getElementById("backtest-loading").style.display = "none";
+                document.getElementById("backtest-empty").style.display = "";
+            }
+        }
+
+        function renderBacktestSummary() {
+            const data = backtestData;
+            const n = data.length;
+
+            const avgRho = data.reduce((s, r) => s + r.rho, 0) / n;
+            const avgT10 = data.reduce((s, r) => s + r.overlap_10, 0) / n;
+            const avgT20 = data.reduce((s, r) => s + r.overlap_20, 0) / n;
+            const avgDR = data.reduce((s, r) => s + r.dr_ratio, 0) / n;
+
+            const cardsEl = document.getElementById("backtest-summary-cards");
+            cardsEl.innerHTML = `
+                <div class="summary-card">
+                    <div class="card-value" style="color:${rhoColor(avgRho)}">${avgRho.toFixed(3)}</div>
+                    <div class="card-label">Avg Spearman Rho</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">${avgT10.toFixed(1)}<span style="font-size:0.9rem;color:var(--text-dim)">/10</span></div>
+                    <div class="card-label">Avg Top-10 Overlap</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">${avgT20.toFixed(1)}<span style="font-size:0.9rem;color:var(--text-dim)">/20</span></div>
+                    <div class="card-label">Avg Top-20 Overlap</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">${avgDR.toFixed(2)}x</div>
+                    <div class="card-label">Avg D/R Ratio</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">${n}</div>
+                    <div class="card-label">Years Tested</div>
+                </div>
+            `;
+
+            const gridEl = document.getElementById("year-grid");
+            gridEl.innerHTML = "";
+            data.forEach(r => {
+                const card = document.createElement("div");
+                card.className = "year-card";
+                card.dataset.year = r.year;
+
+                const rhoW = Math.max(0, Math.min(100, ((r.rho + 1) / 2) * 100));
+
+                card.innerHTML = `
+                    <div class="year-title">${r.year}</div>
+                    <div class="year-stats">
+                        <span class="stat-label">Rho</span>
+                        <span class="stat-value" style="color:${rhoColor(r.rho)}">${r.rho.toFixed(3)}</span>
+                        <span class="stat-label">Top-10</span>
+                        <span class="stat-value">${r.overlap_10}/10</span>
+                        <span class="stat-label">Top-20</span>
+                        <span class="stat-value">${r.overlap_20}/20</span>
+                        <span class="stat-label">D/R</span>
+                        <span class="stat-value">${r.dr_ratio.toFixed(2)}x</span>
+                        <span class="stat-label">Movies</span>
+                        <span class="stat-value">${r.n_movies}</span>
+                    </div>
+                    <div class="rho-bar"><div class="rho-bar-fill" style="width:${rhoW}%;background:${rhoColor(r.rho)};"></div></div>
+                `;
+
+                card.addEventListener("click", () => selectYear(r.year));
+                gridEl.appendChild(card);
+            });
+        }
+
+        async function selectYear(year) {
+            // Toggle off if same year clicked
+            if (selectedYear === year) {
+                selectedYear = null;
+                document.getElementById("year-detail-panel").classList.remove("open");
+                document.querySelectorAll(".year-card").forEach(c => c.classList.remove("selected"));
+                return;
+            }
+
+            selectedYear = year;
+            document.querySelectorAll(".year-card").forEach(c => {
+                c.classList.toggle("selected", parseInt(c.dataset.year) === year);
+            });
+
+            const panel = document.getElementById("year-detail-panel");
+            panel.classList.add("open");
+            panel.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            const resp = await fetch("/api/backtest/year/" + year);
+            const data = await resp.json();
+            const s = data.summary;
+            const movies = data.movies;
+
+            let html = `
+                <button class="back-btn" onclick="selectYear(${year})">Close</button>
+                <h2>${year} Backtest Detail</h2>
+                <div class="detail-metrics">
+                    <div>Spearman Rho: <span style="color:${rhoColor(s.rho)}">${s.rho.toFixed(3)}</span></div>
+                    <div>Top-10 Overlap: <span>${s.overlap_10}/10</span></div>
+                    <div>Top-20 Overlap: <span>${s.overlap_20}/20</span></div>
+                    <div>D/R Ratio: <span>${s.dr_ratio.toFixed(2)}x</span></div>
+                    <div>Score Draft: <span>${formatMoney(s.profit_score)}</span></div>
+                    <div>Optimal Draft: <span>${formatMoney(s.profit_optimal)}</span></div>
+                    <div>Random Draft: <span>${formatMoney(s.profit_random)}</span></div>
+                </div>
+                <table class="rank-table">
+                    <thead>
+                        <tr>
+                            <th>Pred #</th>
+                            <th>Act #</th>
+                            <th>Diff</th>
+                            <th>Title</th>
+                            <th>Score</th>
+                            <th>Budget</th>
+                            <th>Revenue</th>
+                            <th>Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            movies.forEach(m => {
+                const diff = m.actual_rank - m.predicted_rank;
+                const absDiff = Math.abs(diff);
+                let diffClass = "ok";
+                let diffLabel = "\u2014";
+                if (diff > 0) { diffClass = "good"; diffLabel = "+" + diff; }
+                else if (diff < 0) { diffClass = "bad"; diffLabel = String(diff); }
+                if (absDiff <= 3) diffClass = "good";
+                else if (absDiff <= 10) diffClass = "ok";
+                else diffClass = "bad";
+
+                const profit = m.revenue - m.budget;
+                const profitClass = profit >= 0 ? "profit-positive" : "profit-negative";
+
+                html += `
+                    <tr>
+                        <td style="font-weight:600;">${m.predicted_rank}</td>
+                        <td>${m.actual_rank}</td>
+                        <td><span class="rank-diff ${diffClass}">${diffLabel}</span></td>
+                        <td>${escHtml(m.title)}</td>
+                        <td>${m.predicted_score.toFixed(1)}</td>
+                        <td>${formatMoney(m.budget)}</td>
+                        <td>${formatMoney(m.revenue)}</td>
+                        <td class="${profitClass}">${profit >= 0 ? "+" : ""}${formatMoney(Math.abs(profit))}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            panel.innerHTML = html;
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        // =====================================================================
+        // Init
+        // =====================================================================
+
+        loadGenres();
+        loadMovies();
+    </script>
+</body>
+</html>
